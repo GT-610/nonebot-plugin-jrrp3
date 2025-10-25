@@ -12,6 +12,7 @@ import sqlite3
 from nonebot import require, get_driver
 
 require("nonebot_plugin_alconna")
+require("nonebot_plugin_localstore")
 
 # 获取驱动
 driver = get_driver()
@@ -20,11 +21,14 @@ from nonebot.log import logger
 from nonebot.adapters import Bot, Event
 from nonebot_plugin_alconna import Alconna, on_alconna
 from nonebot_plugin_alconna.uniseg import UniMessage
+from nonebot_plugin_localstore import get_plugin_data_dir
 import random
 from datetime import date
 
-# 数据库路径
-DB_PATH = Path("data/jrrp3/jrrpdata.db")
+# 使用nonebot_plugin_localstore获取标准数据存储路径
+plugin_data_dir = get_plugin_data_dir()
+# 在标准数据目录下创建jrrp3子目录并设置数据库文件路径
+DB_PATH = plugin_data_dir / "jrrp3" / "jrrpdata.db"
 
 # 确保数据目录存在
 data_dir = DB_PATH.parent
