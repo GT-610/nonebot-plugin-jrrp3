@@ -1,4 +1,4 @@
-'''Descripttion: 
+'''Description: 
 version: 3.0
 Author: Rene8028
 Date: 2022-07-20 21:58:25
@@ -7,7 +7,6 @@ LastEditTime: 2025-10-25 17:20:00
 '''
 
 import datetime
-from pathlib import Path
 import sqlite3
 from nonebot import require, get_driver
 
@@ -63,8 +62,6 @@ def init_database():
 @driver.on_startup
 async def startup():
     init_database()
-
-
 
 #自定义数值对应回复
 def luck_simple(num):
@@ -198,7 +195,7 @@ async def jrrp_handle(bot: Bot, event: Event):
         
         # 发送结果
         await UniMessage.text(
-            f' 您今日的幸运指数是{lucknum}，为"{luck_level}"，{luck_desc}'
+            f' 您今日的幸运指数是 {lucknum}，为“{luck_level}”，{luck_desc}'
         ).send(at_sender=True)
         await jrrp.finish()
         return  # 确保finish()后不会继续执行
