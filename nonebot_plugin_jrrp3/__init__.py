@@ -24,6 +24,26 @@ from nonebot_plugin_localstore import get_plugin_data_dir
 import random
 from datetime import date
 
+# 插件元数据
+from nonebot.plugin import PluginMetadata
+
+__plugin_meta__ = PluginMetadata(
+    name="每日人品",
+    description="更加现代化的 NoneBot2 每日人品插件，支持查询今日、本周、本月和历史平均人品，提供详细的运势评价，并支持数据持久化存储。",
+    usage="jrrp/今日人品/今日运势 - 查询今日人品指数\n本周人品/本周运势/周运势 - 查询本周平均人品\n本月人品/本月运势/月运势 - 查询本月平均人品\n总人品/平均人品/平均运势 - 查询历史平均人品",
+
+    type="application",
+    # 发布必填，当前有效类型有：`library`（为其他插件编写提供功能），`application`（向机器人用户提供功能）。
+
+    homepage="https://pypi.org/project/nonebot-plugin-jrrp3/",
+    # 发布必填。
+
+    supported_adapters={"~onebot.v11"},
+    # 支持的适配器集合，其中 `~` 在此处代表前缀 `nonebot.adapters.`，其余适配器亦按此格式填写。
+    # 若插件可以保证兼容所有适配器（即仅使用基本适配器功能）可不填写，否则应该列出插件支持的适配器。
+)
+
+
 # 使用nonebot_plugin_localstore获取标准数据存储路径
 plugin_data_dir = get_plugin_data_dir()
 # 在标准数据目录下创建jrrp3子目录并设置数据库文件路径
