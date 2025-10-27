@@ -225,7 +225,7 @@ async def alljrrp_handle(bot: Bot, event: Event):
         avg_luck = round(allnum / times, 1)
         
         await UniMessage.text(
-            f' 您一共使用了 {times} 天jrrp，您历史平均的幸运指数是 {avg_luck}'
+            f' 您一共使用了 {times} 天 jrrp，您历史平均的幸运指数是 {avg_luck}'
         ).send(at_sender=True)
         await alljrrp.finish()
     except Exception as e:

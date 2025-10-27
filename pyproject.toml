@@ -1,13 +1,15 @@
 [tool.poetry]
 name = "nonebot-plugin-jrrp3"
 version = "3.0"
-description = ""
+description = "更加现代化的 NoneBot2 每日人品插件，支持查询今日、本周、本月和历史平均人品，提供详细的运势评价，并支持数据持久化存储。"
 authors = ["Rene8028", "UKMeng <ukmengse@gmail.com>", "GT610 <myddz1005@outlook.com>"]
 readme = "README.md"
 packages = [{include = "nonebot_plugin_jrrp3"}]
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = "^3.9"
+nonebot-plugin-alconna = "^0.5.0"
+nonebot-plugin-localstore = "^0.5.0"
 
 [tool.poetry.group.dev.dependencies]
 nonebot2 = {extras = ["fastapi", "httpx", "webscokets"], version = "^2.1.0"}

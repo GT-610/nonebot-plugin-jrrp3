@@ -121,7 +121,7 @@ _✨ 更加现代化的 NoneBot2 每日人品插件 ✨_
 - nonebot2 >= 2.1.0
 - nonebot-plugin-alconna
 - nonebot-plugin-localstore
-- Python >= 3.10
+- Python >= 3.9
 
 ## 📝 许可证
 
