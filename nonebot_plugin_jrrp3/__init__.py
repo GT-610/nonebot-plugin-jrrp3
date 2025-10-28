@@ -30,7 +30,7 @@ from nonebot.plugin import PluginMetadata
 __plugin_meta__ = PluginMetadata(
     name="每日人品",
     description="更加现代化的 NoneBot2 每日人品插件，支持查询今日、本周、本月和历史平均人品，提供详细的运势评价，并支持数据持久化存储。",
-    usage="jrrp/今日人品/今日运势 - 查询今日人品指数\n本周人品/本周运势/周运势 - 查询本周平均人品\n本月人品/本月运势/月运势 - 查询本月平均人品\n总人品/平均人品/平均运势 - 查询历史平均人品",
+    usage="jrrp/今日人品/今日运势 - 查询今日人品指数\nweekjrrp/本周人品/本周运势/周运势 - 查询本周平均人品\nmonthjrrp/本月人品/本月运势/月运势 - 查询本月平均人品\nalljrrp/总人品/平均人品/平均运势 - 查询历史平均人品",
 
     type="application",
     # 发布必填，当前有效类型有：`library`（为其他插件编写提供功能），`application`（向机器人用户提供功能）。
@@ -47,13 +47,13 @@ __plugin_meta__ = PluginMetadata(
 # 使用nonebot_plugin_localstore获取标准数据存储路径
 plugin_data_dir = get_plugin_data_dir()
 # 在标准数据目录下创建jrrp3子目录并设置数据库文件路径
-DB_PATH = plugin_data_dir / "jrrp3" / "jrrpdata.db"
+DB_PATH = plugin_data_dir / "jrrpdata.db"
 
 # 确保数据目录存在
 data_dir = DB_PATH.parent
 data_dir.mkdir(parents=True, exist_ok=True)
 
-logger.info(f"数据库路径: {DB_PATH}")
+logger.debug(f"数据库路径: {DB_PATH}")
 
 # 数据库连接辅助函数
 def get_db_connection():
