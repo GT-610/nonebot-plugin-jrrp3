@@ -119,7 +119,7 @@ _✨ 更加现代化的 NoneBot2 每日人品插件 ✨_
 
 ## 📦 依赖
 
-- nonebot2 >= 2.1.0
+- nonebot2 >= 2.3.0
 - nonebot-plugin-alconna >= 0.50.0
 - nonebot-plugin-localstore >= 0.6.0
 - Python >= 3.9, < 4.0
