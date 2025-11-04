@@ -35,7 +35,7 @@ __plugin_meta__ = PluginMetadata(
     type="application",
     # 发布必填，当前有效类型有：`library`（为其他插件编写提供功能），`application`（向机器人用户提供功能）。
 
-    homepage="https://pypi.org/project/nonebot-plugin-jrrp3/",
+    homepage="https://github.com/GT-610/nonebot-plugin-jrrp3",
     # 发布必填。
 
     supported_adapters={"~onebot.v11"},
