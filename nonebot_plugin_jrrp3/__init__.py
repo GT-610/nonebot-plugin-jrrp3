@@ -3,7 +3,7 @@ version: 3.0
 Author: Rene8028
 Date: 2022-07-20 21:58:25
 LastEditors: GT-610
-LastEditTime: 2025-10-25 17:20:00
+LastEditTime: 2025-11-11 17:05:19
 '''
 
 import datetime
@@ -25,7 +25,7 @@ import random
 from datetime import date
 
 # 插件元数据
-from nonebot.plugin import PluginMetadata
+from nonebot.plugin import PluginMetadata, inherit_supported_adapters
 
 __plugin_meta__ = PluginMetadata(
     name="每日人品",
@@ -38,9 +38,8 @@ __plugin_meta__ = PluginMetadata(
     homepage="https://github.com/GT-610/nonebot-plugin-jrrp3",
     # 发布必填。
 
-    supported_adapters={"~onebot.v11"},
-    # 支持的适配器集合，其中 `~` 在此处代表前缀 `nonebot.adapters.`，其余适配器亦按此格式填写。
-    # 若插件可以保证兼容所有适配器（即仅使用基本适配器功能）可不填写，否则应该列出插件支持的适配器。
+    supported_adapters=inherit_supported_adapters("nonebot_plugin_alconna"),
+    # 使用 inherit_supported_adapters 从 alconna 插件继承支持的适配器
 )
 
 
