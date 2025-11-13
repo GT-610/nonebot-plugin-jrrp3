@@ -8,6 +8,9 @@ LastEditTime: 2025-11-11 17:05:19
 
 import datetime
 import sqlite3
+import json
+import yaml
+import os
 from nonebot import require, get_driver
 
 require("nonebot_plugin_alconna")
@@ -20,9 +23,87 @@ from nonebot.log import logger
 from nonebot.adapters import Bot, Event
 from nonebot_plugin_alconna import Alconna, on_alconna
 from nonebot_plugin_alconna.uniseg import UniMessage
-from nonebot_plugin_localstore import get_plugin_data_dir
+from nonebot_plugin_localstore import get_plugin_data_dir, get_plugin_config_dir
 import random
 from datetime import date
+
+# 使用nonebot-plugin-localstore获取标准配置存储路径
+plugin_config_dir = get_plugin_config_dir()
+# 使用nonebot-plugin-localstore获取标准数据存储路径
+plugin_data_dir = get_plugin_data_dir()
+
+# 配置文件路径
+CONFIG_FILE_YAML = plugin_config_dir / "jrrp_config.yaml"
+CONFIG_FILE_JSON = plugin_config_dir / "jrrp_config.json"
+# 确保配置目录存在
+plugin_config_dir.mkdir(parents=True, exist_ok=True)
+
+# 默认配置
+DEFAULT_CONFIG = {
+    "special_values": {
+        "100": {
+            "level": "超吉",
+            "description": "100！100诶！！你就是欧皇？"
+        },
+        "0": {
+            "level": "超凶(大寄)",
+            "description": "？？？反向欧皇？"
+        }
+    },
+    "ranges": [
+        {
+            "min": 76,
+            "max": 99,
+            "level": "大吉",
+            "description": "好耶！今天运气真不错呢"
+        },
+        {
+            "min": 66,
+            "max": 75,
+            "level": "吉",
+            "description": "哦豁，今天运气还顺利哦"
+        },
+        {
+            "min": 63,
+            "max": 65,
+            "level": "半吉",
+            "description": "emm，今天运气一般般呢"
+        },
+        {
+            "min": 59,
+            "max": 62,
+            "level": "小吉",
+            "description": "还……还行吧，今天运气稍差一点点呢"
+        },
+        {
+            "min": 54,
+            "max": 58,
+            "level": "末小吉",
+            "description": "唔……今天运气有点差哦"
+        },
+        {
+            "min": 19,
+            "max": 53,
+            "level": "末吉",
+            "description": "呜哇，今天运气应该不太好"
+        },
+        {
+            "min": 10,
+            "max": 18,
+            "level": "凶",
+            "description": "啊这……(没错……是百分制)，今天还是吃点好的吧"
+        },
+        {
+            "min": 1,
+            "max": 9,
+            "level": "大凶",
+            "description": "啊这……(个位数可还行)，今天还是吃点好的吧"
+        }
+    ]
+}
+
+# 全局配置变量
+plugin_config = None
 
 # 插件元数据
 from nonebot.plugin import PluginMetadata, inherit_supported_adapters
@@ -43,8 +124,6 @@ __plugin_meta__ = PluginMetadata(
 )
 
 
-# 使用nonebot_plugin_localstore获取标准数据存储路径
-plugin_data_dir = get_plugin_data_dir()
 # 在标准数据目录下创建jrrp3子目录并设置数据库文件路径
 DB_PATH = plugin_data_dir / "jrrpdata.db"
 
@@ -53,6 +132,69 @@ data_dir = DB_PATH.parent
 data_dir.mkdir(parents=True, exist_ok=True)
 
 logger.debug(f"数据库路径: {DB_PATH}")
+logger.debug(f"配置文件路径(YAML): {CONFIG_FILE_YAML}")
+logger.debug(f"配置文件路径(JSON): {CONFIG_FILE_JSON}")
+
+# 加载配置文件
+def load_config():
+    """加载配置文件，如果不存在则创建默认配置"""
+    global plugin_config
+    
+    # 检查两种配置文件是否同时存在
+    if CONFIG_FILE_YAML.exists() and CONFIG_FILE_JSON.exists():
+        # 当两种格式的配置文件同时存在时，提示冲突
+        logger.warning(
+            f"配置文件冲突警告: YAML 文件({CONFIG_FILE_YAML})和 JSON 文件({CONFIG_FILE_JSON})同时存在!\n"
+            f"系统将优先加载 YAML 格式配置文件。\n"
+            f"建议删除其中一个文件以避免混淆。"
+        )
+        # 默认加载YAML格式
+        try:
+            with open(CONFIG_FILE_YAML, 'r', encoding='utf-8') as f:
+                plugin_config = yaml.safe_load(f)
+            logger.info(f"优先加载YAML配置文件: {CONFIG_FILE_YAML}")
+            return
+        except Exception as e:
+            logger.error(f"加载YAML配置文件失败: {e}")
+            # 如果YAML加载失败，尝试JSON
+            try:
+                with open(CONFIG_FILE_JSON, 'r', encoding='utf-8') as f:
+                    plugin_config = json.load(f)
+                logger.warning(f"YAML加载失败，尝试加载JSON配置文件: {CONFIG_FILE_JSON}")
+                return
+            except Exception as e:
+                logger.error(f"加载JSON配置文件失败: {e}")
+    
+    # 如果只有一种格式存在，加载对应格式
+    elif CONFIG_FILE_YAML.exists():
+        try:
+            with open(CONFIG_FILE_YAML, 'r', encoding='utf-8') as f:
+                plugin_config = yaml.safe_load(f)
+            logger.info(f"成功加载YAML配置文件: {CONFIG_FILE_YAML}")
+            return
+        except Exception as e:
+            logger.error(f"加载YAML配置文件失败: {e}")
+    
+    elif CONFIG_FILE_JSON.exists():
+        try:
+            with open(CONFIG_FILE_JSON, 'r', encoding='utf-8') as f:
+                plugin_config = json.load(f)
+            logger.info(f"成功加载JSON配置文件: {CONFIG_FILE_JSON}")
+            return
+        except Exception as e:
+            logger.error(f"加载JSON配置文件失败: {e}")
+    
+    # 如果都不存在，创建默认YAML配置文件
+    try:
+        with open(CONFIG_FILE_YAML, 'w', encoding='utf-8') as f:
+            yaml.dump(DEFAULT_CONFIG, f, allow_unicode=True, default_flow_style=False)
+        plugin_config = DEFAULT_CONFIG
+        logger.info(f"创建默认YAML配置文件: {CONFIG_FILE_YAML}")
+    except Exception as e:
+        logger.error(f"创建默认配置文件失败: {e}")
+        # 如果创建配置文件失败，使用内存中的默认配置
+        plugin_config = DEFAULT_CONFIG
+        logger.warning("使用内存中的默认配置")
 
 # 数据库连接辅助函数
 def get_db_connection():
@@ -77,33 +219,34 @@ def init_database():
     except Exception as e:
         logger.error(f"数据库表初始化失败: {e}")
 
-# 在驱动启动时初始化数据库
+# 在驱动启动时初始化数据库和加载配置
 @driver.on_startup
 async def startup():
+    load_config()
     init_database()
 
 #自定义数值对应回复
 def luck_simple(num):
-    if num == 100:
-        return '超吉','100！100诶！！你就是欧皇？'
-    elif num == 0:
-        return '超凶(大寄)','？？？反向欧皇？'
-    elif num > 75:
-        return '大吉','好耶！今天运气真不错呢'
-    elif num > 65:
-        return '吉','哦豁，今天运气还顺利哦'
-    elif num > 62:
-        return '半吉','emm，今天运气一般般呢'
-    elif num > 58:
-        return '小吉','还……还行吧，今天运气稍差一点点呢'
-    elif num > 53:
-        return '末小吉','唔……今天运气有点差哦'
-    elif num > 18:
-        return '末吉','呜哇，今天运气应该不太好'
-    elif num > 9:
-        return '凶','啊这……(没错……是百分制)，今天还是吃点好的吧'
-    else:
-        return '大凶','啊这……(个位数可还行)，今天还是吃点好的吧'
+    global plugin_config
+    
+    # 确保配置已加载
+    if plugin_config is None:
+        load_config()
+    
+    # 检查特殊值
+    special_values = plugin_config.get("special_values", {})
+    if str(num) in special_values:
+        special_config = special_values[str(num)]
+        return special_config["level"], special_config["description"]
+    
+    # 检查范围值
+    ranges = plugin_config.get("ranges", [])
+    for range_config in ranges:
+        if range_config["min"] <= num <= range_config["max"]:
+            return range_config["level"], range_config["description"]
+    
+    # 如果没有匹配到，返回默认值
+    return "未知", "无法确定运势级别"
     
 # 新增数据
 def insert_tb(qqid, value, date):

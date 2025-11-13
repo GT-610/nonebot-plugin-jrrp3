@@ -11,6 +11,7 @@ python = ">=3.9,<4.0"
 nonebot2 = ">=2.3.0,<3.0.0"
 nonebot-plugin-alconna = ">=0.50.0"
 nonebot-plugin-localstore = ">=0.6.0"
+pyyaml = ">=6.0"
 
 [tool.poetry.group.dev.dependencies]
 nonebot2 = {extras = ["fastapi", "httpx", "webscokets"], version = ">=2.1.0"}
