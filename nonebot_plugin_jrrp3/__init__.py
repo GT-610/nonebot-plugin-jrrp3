@@ -6,8 +6,6 @@ LastEditors: GT-610
 LastEditTime: 2025-11-13 21:41:55
 '''
 
-import datetime
-import sqlite3
 import json
 import yaml
 from nonebot import require, get_driver
@@ -22,9 +20,12 @@ from nonebot.log import logger
 from nonebot.adapters import Bot, Event
 from nonebot_plugin_alconna import Alconna, on_alconna
 from nonebot_plugin_alconna.uniseg import UniMessage
-from nonebot_plugin_localstore import get_plugin_data_dir, get_plugin_config_dir
+from nonebot_plugin_localstore import get_plugin_config_dir, get_plugin_data_dir
 import random
 from datetime import date
+from .database import (
+    init_database, insert_tb, select_tb_all, select_tb_today,
+    same_week, same_month)
 
 # 使用nonebot-plugin-localstore获取标准配置存储路径
 plugin_config_dir = get_plugin_config_dir()
@@ -125,14 +126,6 @@ __plugin_meta__ = PluginMetadata(
 )
 
 
-# 在标准数据目录下创建jrrp3子目录并设置数据库文件路径
-DB_PATH = plugin_data_dir / "jrrpdata.db"
-
-# 确保数据目录存在
-data_dir = DB_PATH.parent
-data_dir.mkdir(parents=True, exist_ok=True)
-
-logger.debug(f"数据库路径: {DB_PATH}")
 logger.debug(f"配置文件路径(YAML): {CONFIG_FILE_YAML}")
 logger.debug(f"配置文件路径(JSON): {CONFIG_FILE_JSON}")
 
@@ -314,28 +307,7 @@ def validate_and_fix_ranges():
         if "description" not in range_config:
             range_config["description"] = "暂无描述"
 
-# 数据库连接辅助函数
-def get_db_connection():
-    """获取数据库连接"""
-    return sqlite3.connect(str(DB_PATH))
 
-# 初始化数据库
-def init_database():
-    """初始化数据库表"""
-    try:
-        with get_db_connection() as conn:
-            cursor = conn.cursor()
-            create_tb_cmd = '''
-            CREATE TABLE IF NOT EXISTS jdata
-            (QQID int,
-            Value int,
-            Date text);
-            '''
-            cursor.execute(create_tb_cmd)
-            conn.commit()
-        logger.info("数据库表初始化成功")
-    except Exception as e:
-        logger.error(f"数据库表初始化失败: {e}")
 
 # 在驱动启动时初始化数据库和加载配置
 @driver.on_startup
@@ -363,58 +335,7 @@ def luck_simple(num):
     # 如果没有匹配到，返回默认值
     return "未知", "无法确定运势级别"
     
-# 新增数据
-def insert_tb(qqid, value, date):
-    """向数据库插入新的人品记录"""
-    try:
-        with get_db_connection() as conn:
-            cursor = conn.cursor()
-            # 使用参数化查询避免SQL注入
-            insert_tb_cmd = 'INSERT INTO jdata(QQID, Value, Date) VALUES(?, ?, ?)'
-            cursor.execute(insert_tb_cmd, (qqid, value, date))
-            conn.commit()
-    except Exception as e:
-        logger.error(f"插入数据失败: {e}")
-        raise
 
-# 查询历史数据
-def select_tb_all(qqid):
-    """查询用户的所有历史人品记录"""
-    try:
-        with get_db_connection() as conn:
-            cursor = conn.cursor()
-            select_tb_cmd = 'SELECT * FROM jdata WHERE QQID = ?'
-            cursor.execute(select_tb_cmd, (qqid,))
-            return cursor.fetchall()
-    except Exception as e:
-        logger.error(f"查询历史数据失败: {e}")
-        return []
-
-# 查询今日是否存在数据
-def select_tb_today(qqid, date):
-    """查询用户今日是否已经查询过人品"""
-    try:
-        with get_db_connection() as conn:
-            cursor = conn.cursor()
-            select_tb_cmd = 'SELECT * FROM jdata WHERE QQID = ? AND Date = ?'
-            cursor.execute(select_tb_cmd, (qqid, date))
-            results = cursor.fetchall()
-            return bool(results)
-    except Exception as e:
-        logger.error(f"查询今日数据失败: {e}")
-        return False
-#判断是否本周
-def same_week(dateString):
-    d1 = datetime.datetime.strptime(dateString,'%y%m%d')
-    d2 = datetime.datetime.today()
-    return d1.isocalendar()[1] == d2.isocalendar()[1] \
-              and d1.year == d2.year
-#判断是否本月
-def same_month(dateString):
-    d1 = datetime.datetime.strptime(dateString,'%y%m%d')
-    d2 = datetime.datetime.today()
-    return d1.month == d2.month \
-              and d1.year == d2.year
 
 # 使用 Alconna 创建命令
 jrrp_cmd = Alconna("jrrp")
