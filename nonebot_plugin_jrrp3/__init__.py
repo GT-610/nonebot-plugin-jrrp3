@@ -26,6 +26,9 @@ from datetime import date
 from .database import (
     init_database, insert_tb, select_tb_all, select_tb_today,
     same_week, same_month)
+from .utils import (
+    calculate_luck_level, generate_luck_value, 
+    calculate_average_luck, filter_week_data, filter_month_data)
 
 # 使用nonebot-plugin-localstore获取标准配置存储路径
 plugin_config_dir = get_plugin_config_dir()
@@ -315,25 +318,7 @@ async def startup():
     load_config()
     init_database()
 
-#自定义数值对应回复
-def luck_simple(num):
-    global plugin_config
-    
-    # 确保配置已加载
-    if plugin_config is None:
-        load_config()
-    
-    # 检查范围值（使用Python数组切片规则：前闭后开，[min, max)）
-    ranges = plugin_config.get("ranges", [])
-    for range_config in ranges:
-        min_val = range_config["min"]
-        max_val = range_config["max"]
-        # 前闭后开：包含min，不包含max
-        if min_val <= num < max_val:
-            return range_config["level"], range_config["description"]
-    
-    # 如果没有匹配到，返回默认值
-    return "未知", "无法确定运势级别"
+
     
 
 
@@ -379,31 +364,22 @@ async def jrrp_handle(bot: Bot, event: Event):
         user_id = event.get_user_id()
         today_date = date.today().strftime("%y%m%d")
         
-        # 生成随机数
-        rnd = random.Random()
-        rnd.seed(int(today_date) + int(user_id))
+        # 生成随机数种子
+        seed = int(today_date) + int(user_id)
         
         # 获取已通过边界控制的随机数范围
         min_luck = plugin_config.get("min_luck", 1)
         max_luck = plugin_config.get("max_luck", 100)
         
-        # 额外保险：再次确保在安全范围内
-        min_luck = max(MIN_SAFE_VALUE, min(int(min_luck), MAX_SAFE_VALUE))
-        max_luck = max(MIN_SAFE_VALUE, min(int(max_luck), MAX_SAFE_VALUE))
-        
-        # 安全生成随机数，避免极端值问题
-        try:
-            lucknum = rnd.randint(min_luck, max_luck)
-        except ValueError as e:
-            logger.error(f"生成随机数时出错: {e}，使用默认范围")
-            lucknum = rnd.randint(1, 100)
+        # 生成人品值
+        lucknum = generate_luck_value(min_luck, max_luck, seed)
         
         # 如果今日未查询过，则保存记录
         if not select_tb_today(user_id, today_date):
             insert_tb(user_id, lucknum, today_date)
         
         # 获取运势评价
-        luck_level, luck_desc = luck_simple(lucknum)
+        luck_level, luck_desc = calculate_luck_level(lucknum, plugin_config.get("ranges", []))
         
         # 发送结果
         await UniMessage.text(
@@ -432,9 +408,7 @@ async def alljrrp_handle(bot: Bot, event: Event):
             await alljrrp.finish()
         
         # 计算平均值
-        times = len(alldata)
-        allnum = sum(int(item[1]) for item in alldata)
-        avg_luck = round(allnum / times, 1)
+        times, avg_luck = calculate_average_luck(alldata)
         
         await UniMessage.text(
             f' 您一共使用了 {times} 天 jrrp，您历史平均的幸运指数是 {avg_luck}'
@@ -457,16 +431,14 @@ async def monthjrrp_handle(bot: Bot, event: Event):
         alldata = select_tb_all(user_id)
         
         # 筛选本月数据
-        month_data = [item for item in alldata if same_month(item[2])]
+        month_data = filter_month_data(alldata, same_month)
         
         if not month_data:
             await UniMessage.text(f' 您本月还没有过人品记录！').send(at_sender=True)
             await monthjrrp.finish()
         
         # 计算平均值
-        times = len(month_data)
-        allnum = sum(int(item[1]) for item in month_data)
-        avg_luck = round(allnum / times, 1)
+        times, avg_luck = calculate_average_luck(month_data)
         
         await UniMessage.text(
             f' 您本月共使用了 {times} 天 jrrp，平均的幸运指数是 {avg_luck}'
@@ -493,16 +465,14 @@ async def weekjrrp_handle(bot: Bot, event: Event):
             await weekjrrp.finish()
         
         # 筛选本周数据
-        week_data = [item for item in alldata if same_week(item[2])]
+        week_data = filter_week_data(alldata, same_week)
         
         if not week_data:
             await UniMessage.text(f' 您本周还没有过人品记录！').send(at_sender=True)
             await weekjrrp.finish()
         
         # 计算平均值
-        times = len(week_data)
-        allnum = sum(int(item[1]) for item in week_data)
-        avg_luck = round(allnum / times, 1)
+        times, avg_luck = calculate_average_luck(week_data)
         
         await UniMessage.text(
             f' 您本周共使用了 {times} 天 jrrp，平均的幸运指数是 {avg_luck}'
