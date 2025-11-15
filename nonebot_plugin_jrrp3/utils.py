@@ -1,11 +1,4 @@
-'''Description: 计算人品相关的工具函数模块
-version: 3.2.0
-Author: GT-610
-Date: 2025-11-14
-'''
-
 import random
-from datetime import datetime
 from nonebot.log import logger
 
 # 安全边界定义

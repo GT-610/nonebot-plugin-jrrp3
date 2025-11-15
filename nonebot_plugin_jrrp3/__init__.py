@@ -1,11 +1,3 @@
-'''Description: 
-version: 3.0
-Author: Rene8028
-Date: 2022-07-20 21:58:25
-LastEditors: GT-610
-LastEditTime: 2025-11-13 21:41:55
-'''
-
 import json
 import yaml
 from nonebot import require, get_driver
@@ -17,18 +9,9 @@ require("nonebot_plugin_localstore")
 driver = get_driver()
 
 from nonebot.log import logger
-from nonebot.adapters import Bot, Event
-from nonebot_plugin_alconna import Alconna, on_alconna
-from nonebot_plugin_alconna.uniseg import UniMessage
 from nonebot_plugin_localstore import get_plugin_config_dir, get_plugin_data_dir
-import random
-from datetime import date
-from .database import (
-    init_database, insert_tb, select_tb_all, select_tb_today,
-    same_week, same_month)
-from .utils import (
-    calculate_luck_level, generate_luck_value, 
-    calculate_average_luck, filter_week_data, filter_month_data)
+from .database import init_database
+from .command import register_commands
 
 # 使用nonebot-plugin-localstore获取标准配置存储路径
 plugin_config_dir = get_plugin_config_dir()
@@ -312,177 +295,19 @@ def validate_and_fix_ranges():
 
 
 
-# 在驱动启动时初始化数据库和加载配置
+# 在驱动启动时初始化数据库、加载配置并注册命令
 @driver.on_startup
 async def startup():
     load_config()
     init_database()
+    await register_commands(plugin_config)
 
+# 命令定义已迁移到command.py模块
 
-    
+# 处理函数已迁移到command.py模块
 
+# 处理函数已迁移到command.py模块
 
-# 使用 Alconna 创建命令
-jrrp_cmd = Alconna("jrrp")
-alljrrp_cmd = Alconna("alljrrp")
-monthjrrp_cmd = Alconna("monthjrrp")
-weekjrrp_cmd = Alconna("weekjrrp")
+# 处理函数已迁移到command.py模块
 
-# 创建命令处理器，保留所有现有的命令格式和别名
-jrrp = on_alconna(
-    jrrp_cmd,
-    aliases={"今日人品", "今日运势"},
-    use_cmd_start=True,
-    block=True
-)
-
-alljrrp = on_alconna(
-    alljrrp_cmd,
-    aliases={'总人品', '平均人品', '平均运势'},
-    use_cmd_start=True,
-    block=True
-)
-
-monthjrrp = on_alconna(
-    monthjrrp_cmd,
-    aliases={'本月人品', '本月运势', '月运势'},
-    use_cmd_start=True,
-    block=True
-)
-
-weekjrrp = on_alconna(
-    weekjrrp_cmd,
-    aliases={'本周人品', '本周运势', '周运势'},
-    use_cmd_start=True,
-    block=True
-)
-
-@jrrp.handle()
-async def jrrp_handle(bot: Bot, event: Event):
-    """处理今日人品查询命令"""
-    try:
-        user_id = event.get_user_id()
-        today_date = date.today().strftime("%y%m%d")
-        
-        # 生成随机数种子
-        seed = int(today_date) + int(user_id)
-        
-        # 获取已通过边界控制的随机数范围
-        min_luck = plugin_config.get("min_luck", 1)
-        max_luck = plugin_config.get("max_luck", 100)
-        
-        # 生成人品值
-        lucknum = generate_luck_value(min_luck, max_luck, seed)
-        
-        # 如果今日未查询过，则保存记录
-        if not select_tb_today(user_id, today_date):
-            insert_tb(user_id, lucknum, today_date)
-        
-        # 获取运势评价
-        luck_level, luck_desc = calculate_luck_level(lucknum, plugin_config.get("ranges", []))
-        
-        # 发送结果
-        await UniMessage.text(
-            f' 您今日的幸运指数是 {lucknum}，为“{luck_level}”，{luck_desc}'
-        ).send(at_sender=True)
-        await jrrp.finish()
-        return  # 确保finish()后不会继续执行
-    except Exception as e:
-        # 避免捕获FinishedException
-        from nonebot.exception import FinishedException
-        if isinstance(e, FinishedException):
-            raise  # 重新抛出FinishedException
-        logger.error(f"处理今日人品查询出错: {e}")
-        await UniMessage.text(" 处理请求时出错，请稍后重试").send(at_sender=True)
-        await jrrp.finish()
-
-@alljrrp.handle()
-async def alljrrp_handle(bot: Bot, event: Event):
-    """处理历史平均人品查询命令"""
-    try:
-        user_id = event.get_user_id()
-        alldata = select_tb_all(user_id)
-        
-        if not alldata:
-            await UniMessage.text(f' 您还没有过历史人品记录！').send(at_sender=True)
-            await alljrrp.finish()
-        
-        # 计算平均值
-        times, avg_luck = calculate_average_luck(alldata)
-        
-        await UniMessage.text(
-            f' 您一共使用了 {times} 天 jrrp，您历史平均的幸运指数是 {avg_luck}'
-        ).send(at_sender=True)
-        await alljrrp.finish()
-    except Exception as e:
-        # 避免捕获FinishedException
-        from nonebot.exception import FinishedException
-        if isinstance(e, FinishedException):
-            raise  # 重新抛出FinishedException
-        logger.error(f"处理历史平均人品查询出错: {e}")
-        await UniMessage.text(" 处理请求时出错，请稍后重试").send(at_sender=True)
-        await alljrrp.finish()
-
-@monthjrrp.handle()
-async def monthjrrp_handle(bot: Bot, event: Event):
-    """处理本月平均人品查询命令"""
-    try:
-        user_id = event.get_user_id()
-        alldata = select_tb_all(user_id)
-        
-        # 筛选本月数据
-        month_data = filter_month_data(alldata, same_month)
-        
-        if not month_data:
-            await UniMessage.text(f' 您本月还没有过人品记录！').send(at_sender=True)
-            await monthjrrp.finish()
-        
-        # 计算平均值
-        times, avg_luck = calculate_average_luck(month_data)
-        
-        await UniMessage.text(
-            f' 您本月共使用了 {times} 天 jrrp，平均的幸运指数是 {avg_luck}'
-        ).send(at_sender=True)
-        await monthjrrp.finish()
-    except Exception as e:
-        # 避免捕获FinishedException
-        from nonebot.exception import FinishedException
-        if isinstance(e, FinishedException):
-            raise  # 重新抛出FinishedException
-        logger.error(f"处理本月平均人品查询出错: {e}")
-        await UniMessage.text(" 处理请求时出错，请稍后重试").send(at_sender=True)
-        await monthjrrp.finish()
-
-@weekjrrp.handle()
-async def weekjrrp_handle(bot: Bot, event: Event):
-    """处理本周平均人品查询命令"""
-    try:
-        user_id = event.get_user_id()
-        alldata = select_tb_all(user_id)
-        
-        if not alldata:
-            await UniMessage.text(f' 您还没有过历史人品记录！').send(at_sender=True)
-            await weekjrrp.finish()
-        
-        # 筛选本周数据
-        week_data = filter_week_data(alldata, same_week)
-        
-        if not week_data:
-            await UniMessage.text(f' 您本周还没有过人品记录！').send(at_sender=True)
-            await weekjrrp.finish()
-        
-        # 计算平均值
-        times, avg_luck = calculate_average_luck(week_data)
-        
-        await UniMessage.text(
-            f' 您本周共使用了 {times} 天 jrrp，平均的幸运指数是 {avg_luck}'
-        ).send(at_sender=True)
-        await weekjrrp.finish()
-    except Exception as e:
-        # 避免捕获FinishedException
-        from nonebot.exception import FinishedException
-        if isinstance(e, FinishedException):
-            raise  # 重新抛出FinishedException
-        logger.error(f"处理本周平均人品查询出错: {e}")
-        await UniMessage.text(" 处理请求时出错，请稍后重试").send(at_sender=True)
-        await weekjrrp.finish()
+# 处理函数已迁移到command.py模块
