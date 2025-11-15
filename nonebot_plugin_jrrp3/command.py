@@ -7,14 +7,6 @@ from nonebot.adapters import Event
 from nonebot_plugin_alconna import Alconna, on_alconna, Args
 from nonebot_plugin_alconna.uniseg import UniMessage
 
-# 全局配置变量
-_plugin_config = None
-
-def set_plugin_config(config):
-    """设置插件配置"""
-    global _plugin_config
-    _plugin_config = config
-
 # 导入需要的模块和函数
 from .database import insert_tb, select_tb_all, select_tb_today, same_week, same_month
 from .utils import calculate_luck_level, generate_luck_value, calculate_average_luck, filter_week_data, filter_month_data
@@ -54,8 +46,8 @@ def jrrp_handle_func(event: Event) -> str:
         seed = int(today_date) + int(user_id)
         
         # 获取已通过边界控制的随机数范围
-        min_luck = _plugin_config.get("min_luck", 1)
-        max_luck = _plugin_config.get("max_luck", 100)
+        min_luck = plugin_config.get("min_luck", 1)
+        max_luck = plugin_config.get("max_luck", 100)
         
         # 生成人品值
         lucknum = generate_luck_value(min_luck, max_luck, seed)
@@ -65,7 +57,7 @@ def jrrp_handle_func(event: Event) -> str:
             insert_tb(user_id, lucknum, today_date)
         
         # 获取运势评价
-        luck_level, luck_desc = calculate_luck_level(lucknum, _plugin_config.get("ranges", []))
+        luck_level, luck_desc = calculate_luck_level(lucknum, plugin_config.get("ranges", []))
         
         return f' 您今日的幸运指数是 {lucknum}，为"{luck_level}"，{luck_desc}'
     except Exception as e:
