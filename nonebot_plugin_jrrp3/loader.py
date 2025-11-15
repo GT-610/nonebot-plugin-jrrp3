@@ -2,7 +2,6 @@ from typing import Dict, Any, Tuple
 import json
 import yaml
 from nonebot import logger
-from nonebot.log import logger
 from nonebot_plugin_localstore import get_plugin_config_dir
 
 # 安全边界
