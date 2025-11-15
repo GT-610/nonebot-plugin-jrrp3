@@ -47,7 +47,7 @@ def jrrp_handle_func(event: Event) -> str:
         seed = int(today_date) + int(user_id)
         
         # 获取已通过边界控制的随机数范围
-        min_luck = plugin_config.get("min_luck", 1)
+        min_luck = plugin_config.get("min_luck", 0)
         max_luck = plugin_config.get("max_luck", 100)
         
         # 生成人品值

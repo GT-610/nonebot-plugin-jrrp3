@@ -5,9 +5,9 @@ from nonebot import logger
 from nonebot.log import logger
 from nonebot_plugin_localstore import get_plugin_config_dir
 
-# 定义安全边界
-MIN_SAFE_VALUE = 1
-MAX_SAFE_VALUE = 100
+# 安全边界
+MIN_SAFE_VALUE = -1000000
+MAX_SAFE_VALUE = 1000000
 
 # 配置文件路径
 plugin_config_dir = get_plugin_config_dir()
@@ -19,23 +19,18 @@ plugin_config = None
 
 # 默认配置
 DEFAULT_CONFIG = {
-    # 基础配置
-    "description": "jrrp3 插件配置",
-    "version": "1.0.0",
-    
-    # 运势范围配置 - 使用列表格式，与YAML配置文件保持一致
     "ranges": [
-        {"min": 1, "max": 20, "level": "极凶", "description": "今天运气极差"},
-        {"min": 21, "max": 40, "level": "大凶", "description": "今天运气很差"},
-        {"min": 41, "max": 50, "level": "凶", "description": "今天运气不太好"},
-        {"min": 51, "max": 70, "level": "吉", "description": "今天运气不错"},
-        {"min": 71, "max": 85, "level": "大吉", "description": "今天运气很好"},
-        {"min": 86, "max": 100, "level": "极吉", "description": "今天运气极佳"}
+        {"description": "100！100诶！！你就是欧皇？", "level": "超吉", "max": 101, "min": 100},
+        {"description": "好耶！今天运气真不错呢", "level": "大吉", "max": 100, "min": 76},
+        {"description": "哦豁，今天运气还顺利哦", "level": "吉", "max": 76, "min": 66},
+        {"description": "emm，今天运气一般般呢", "level": "半吉", "max": 66, "min": 63},
+        {"description": "还……还行吧，今天运气稍差一点点呢", "level": "小吉", "max": 63, "min": 59},
+        {"description": "唔……今天运气有点差哦", "level": "末小吉", "max": 59, "min": 54},
+        {"description": "呜哇，今天运气应该不太好", "level": "末吉", "max": 54, "min": 19},
+        {"description": "啊这……（没错……是百分制），今天还是吃点好的吧", "level": "凶", "max": 19, "min": 10},
+        {"description": "啊这……（个位数可还行），今天还是吃点好的吧", "level": "大凶", "max": 10, "min": 1},
+        {"description": "？？？反向欧皇？", "level": "超凶（大寄）", "max": 1, "min": 0}
     ],
-    
-    # 边界控制
-    "min_value": MIN_SAFE_VALUE,
-    "max_value": MAX_SAFE_VALUE,
     
     # 指令配置
     "command": {
@@ -103,7 +98,7 @@ def _apply_bounds_control(config_data: Dict[str, Any]) -> Dict[str, Any]:
         config_data["min_luck"] = min_luck
         config_data["max_luck"] = max_luck
     
-    logger.info(f"配置边界控制已应用: min_value={config_data['min_value']}, max_value={config_data['max_value']}")
+    logger.info(f"最小运气值: {config_data.get('min_luck')}, 最大运气值：{config_data.get('max_luck') - 1}")
     return config_data
 
 # 验证并修复范围配置
@@ -207,8 +202,8 @@ def load_config():
         except Exception as e:
             logger.error(f"从JSON配置文件加载配置失败: {e}")
     
-    # 如果都不存在，返回默认配置
-    logger.info("未找到配置文件，使用默认配置")
+    # 如果都不存在，返回默认配置并创建配置文件
+    logger.info("未找到配置文件，使用默认配置并创建YAML配置文件")
     loaded_config = DEFAULT_CONFIG.copy()
     
     # 确保loaded_config是字典
@@ -219,6 +214,20 @@ def load_config():
     # 验证并修正配置
     loaded_config = _validate_and_fix_ranges(loaded_config)
     loaded_config = _apply_bounds_control(loaded_config)
+    
+    # 保存默认配置到YAML文件，只保存DEFAULT_CONFIG中定义的字段
+    try:
+        # 只创建一个包含DEFAULT_CONFIG中定义的字段的配置副本
+        config_to_save = {}
+        for key in DEFAULT_CONFIG:
+            if key in loaded_config:
+                config_to_save[key] = loaded_config[key]
+                
+        with open(config_file_path, "w", encoding="utf-8") as file:
+            yaml.dump(config_to_save, file, allow_unicode=True)
+        logger.info(f"成功创建默认YAML配置文件: {config_file_path}")
+    except Exception as e:
+        logger.error(f"创建默认YAML配置文件失败: {e}")
     
     # 更新全局配置变量
     plugin_config = loaded_config
