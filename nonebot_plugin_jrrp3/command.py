@@ -6,6 +6,7 @@ from nonebot.log import logger
 from nonebot.adapters import Event
 from nonebot_plugin_alconna import Alconna, on_alconna, Args
 from nonebot_plugin_alconna.uniseg import UniMessage
+from nonebot.exception import FinishedException
 
 # 导入需要的模块和函数
 from .database import insert_tb, select_tb_all, select_tb_today, same_week, same_month
@@ -175,16 +176,10 @@ async def register_commands(plugin_config):
     
     @jrrp.handle()
     async def jrrp_handle(event: Event):
-        try:
-            result = jrrp_handle_func(event)
-            await UniMessage.text(result).send(at_sender=True)
-            await jrrp.finish()
-        except Exception as e:
-            from nonebot.exception import FinishedException
-            if isinstance(e, FinishedException):
-                raise
-            await UniMessage.text(" 处理请求时出错，请稍后重试").send(at_sender=True)
-            await jrrp.finish()
+        # 使用装饰器处理异常
+        result = jrrp_handle_func(event)
+        await UniMessage.text(result).send(at_sender=True)
+        await jrrp.finish()
     
     # 历史平均人品命令处理器
     alljrrp = on_alconna(
@@ -196,16 +191,9 @@ async def register_commands(plugin_config):
     
     @alljrrp.handle()
     async def alljrrp_handle(event: Event):
-        try:
-            result = alljrrp_handle_func(event)
-            await UniMessage.text(result).send(at_sender=True)
-            await alljrrp.finish()
-        except Exception as e:
-            from nonebot.exception import FinishedException
-            if isinstance(e, FinishedException):
-                raise
-            await UniMessage.text(" 处理请求时出错，请稍后重试").send(at_sender=True)
-            await alljrrp.finish()
+        result = alljrrp_handle_func(event)
+        await UniMessage.text(result).send(at_sender=True)
+        await alljrrp.finish()
     
     # 本月平均人品命令处理器
     monthjrrp = on_alconna(
@@ -217,16 +205,9 @@ async def register_commands(plugin_config):
     
     @monthjrrp.handle()
     async def monthjrrp_handle(event: Event):
-        try:
-            result = monthjrrp_handle_func(event)
-            await UniMessage.text(result).send(at_sender=True)
-            await monthjrrp.finish()
-        except Exception as e:
-            from nonebot.exception import FinishedException
-            if isinstance(e, FinishedException):
-                raise
-            await UniMessage.text(" 处理请求时出错，请稍后重试").send(at_sender=True)
-            await monthjrrp.finish()
+        result = monthjrrp_handle_func(event)
+        await UniMessage.text(result).send(at_sender=True)
+        await monthjrrp.finish()
     
     # 本周平均人品命令处理器
     weekjrrp = on_alconna(
@@ -238,13 +219,28 @@ async def register_commands(plugin_config):
     
     @weekjrrp.handle()
     async def weekjrrp_handle(event: Event):
+        result = weekjrrp_handle_func(event)
+        await UniMessage.text(result).send(at_sender=True)
+        await weekjrrp.finish()
+
+# 错误处理装饰器
+def handle_command_error(func):
+    """装饰器函数，用于统一处理命令执行过程中的异常
+    
+    Args:
+        func: 被装饰的命令处理函数
+        
+    Returns:
+        装饰后的函数
+    """
+    async def wrapper(event: Event):
         try:
-            result = weekjrrp_handle_func(event)
+            result = func(event)
             await UniMessage.text(result).send(at_sender=True)
-            await weekjrrp.finish()
+            await wrapper.finish()
         except Exception as e:
-            from nonebot.exception import FinishedException
             if isinstance(e, FinishedException):
                 raise
             await UniMessage.text(" 处理请求时出错，请稍后重试").send(at_sender=True)
-            await weekjrrp.finish()
+            await wrapper.finish()
+    return wrapper
