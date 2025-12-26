@@ -19,16 +19,16 @@ plugin_config = None
 # 默认配置
 DEFAULT_CONFIG = {
     "ranges": [
-        {"description": "100！100诶！！你就是欧皇？", "level": "超吉", "max": 101, "min": 100},
-        {"description": "好耶！今天运气真不错呢", "level": "大吉", "max": 100, "min": 76},
-        {"description": "哦豁，今天运气还顺利哦", "level": "吉", "max": 76, "min": 66},
-        {"description": "emm，今天运气一般般呢", "level": "半吉", "max": 66, "min": 63},
-        {"description": "还……还行吧，今天运气稍差一点点呢", "level": "小吉", "max": 63, "min": 59},
-        {"description": "唔……今天运气有点差哦", "level": "末小吉", "max": 59, "min": 54},
-        {"description": "呜哇，今天运气应该不太好", "level": "末吉", "max": 54, "min": 19},
-        {"description": "啊这……（没错……是百分制），今天还是吃点好的吧", "level": "凶", "max": 19, "min": 10},
-        {"description": "啊这……（个位数可还行），今天还是吃点好的吧", "level": "大凶", "max": 10, "min": 1},
-        {"description": "？？？反向欧皇？", "level": "超凶（大寄）", "max": 1, "min": 0}
+        {"description": "100！100诶！！你就是欧皇？", "level": "超吉", "max": 100, "min": 100},
+        {"description": "好耶！今天运气真不错呢", "level": "大吉", "max": 99, "min": 76},
+        {"description": "哦豁，今天运气还顺利哦", "level": "吉", "max": 75, "min": 66},
+        {"description": "emm，今天运气一般般呢", "level": "半吉", "max": 65, "min": 63},
+        {"description": "还……还行吧，今天运气稍差一点点呢", "level": "小吉", "max": 62, "min": 59},
+        {"description": "唔……今天运气有点差哦", "level": "末小吉", "max": 58, "min": 54},
+        {"description": "呜哇，今天运气应该不太好", "level": "末吉", "max": 53, "min": 19},
+        {"description": "啊这……（没错……是百分制），今天还是吃点好的吧", "level": "凶", "max": 18, "min": 10},
+        {"description": "啊这……（个位数可还行），今天还是吃点好的吧", "level": "大凶", "max": 9, "min": 1},
+        {"description": "？？？反向欧皇？", "level": "超凶（大寄）", "max": 0, "min": 0}
     ],
     
     # 指令配置

@@ -106,43 +106,43 @@ $LOCALSTORE_CONFIG_DIR/nonebot_plugin_jrrp3/jrrp_config.yaml
 ranges:
 - description: 100！100诶！！你就是欧皇？
   level: 超吉
-  max: 101
+  max: 100
   min: 100
 - description: 好耶！今天运气真不错呢
   level: 大吉
-  max: 100
+  max: 99
   min: 76
 - description: 哦豁，今天运气还顺利哦
   level: 吉
-  max: 76
+  max: 75
   min: 66
 - description: emm，今天运气一般般呢
   level: 半吉
-  max: 66
+  max: 65
   min: 63
 - description: 还……还行吧，今天运气稍差一点点呢
   level: 小吉
-  max: 63
+  max: 62
   min: 59
 - description: 唔……今天运气有点差哦
   level: 末小吉
-  max: 59
+  max: 58
   min: 54
 - description: 呜哇，今天运气应该不太好
   level: 末吉
-  max: 54
+  max: 53
   min: 19
 - description: 啊这……(没错……是百分制)，今天还是吃点好的吧
   level: 凶
-  max: 19
+  max: 18
   min: 10
 - description: 啊这……(个位数可还行)，今天还是吃点好的吧
   level: 大凶
-  max: 10
+  max: 9
   min: 1
 - description: ？？？反向欧皇？
   level: 超凶（大寄）
-  max: 1
+  max: 0
   min: 0
 ```
 
@@ -157,19 +157,19 @@ ranges:
     level: "极佳"
     description: "今天你是天选之子！"
   - min: 70
-    max: 90
+    max: 89
     level: "很好"
     description: "今天运势不错哦～"
   - min: 50
-    max: 70
+    max: 69
     level: "一般"
     description: "平平无奇的一天"
   - min: 30
-    max: 50
+    max: 49
     level: "较差"
     description: "今天可能需要小心点"
   - min: 0
-    max: 30
+    max: 29
     level: "极差"
     description: "建议今天躺平休息"
 ```
@@ -178,11 +178,11 @@ ranges:
 
 - `ranges`：运势范围配置数组，每个元素定义一个运势等级的数值范围和描述
 - `min`：该范围的最小值（包含）
-- `max`：该范围的最大值（**不包含**）
+- `max`：该范围的最大值（包含）
 - `level`：运势等级名称
 - `description`：运势描述文本
 
-`min` `max` 范围严格遵循 Python 标准的**左闭右开**原则。
+`min` `max` 范围严格遵循 Python `random.randint()` 的**左闭右闭**原则，即 `[min, max]` 包含两端边界值。
 
 **注意事项：**
 

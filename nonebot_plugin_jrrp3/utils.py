@@ -15,16 +15,15 @@ def calculate_luck_level(num: int, ranges: list) -> tuple:
     Returns:
         tuple: (运势级别, 运势描述)
     """
-    # 检查范围值（使用Python数组切片规则：前闭后开，[min, max)）
+    # 检查范围值（使用与randint一致的左闭右闭规则：[min, max]）
     for range_config in ranges:
         min_val = range_config["min"]
         max_val = range_config["max"]
-        # 前闭后开：包含min，不包含max
-        if min_val <= num < max_val:
+        if min_val <= num <= max_val:
             return range_config["level"], range_config["description"]
     
     # 如果没有匹配到，返回默认值
-    return "未知", "无法确定运势级别"
+    return "未知", "你进入了虚空之地"
 
 def generate_luck_value(min_luck: int, max_luck: int, seed: int) -> int:
     """根据用户ID和日期生成随机的人品数值
