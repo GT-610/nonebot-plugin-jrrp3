@@ -6,3 +6,4 @@ setup.py
 .env
 __pycache__
 .DS_store
+poetry.lock
