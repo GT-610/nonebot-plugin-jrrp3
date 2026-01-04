@@ -3,10 +3,7 @@ import json
 import yaml
 from nonebot import logger
 from nonebot_plugin_localstore import get_plugin_config_dir
-
-# 安全边界
-MIN_SAFE_VALUE = -1000000
-MAX_SAFE_VALUE = 1000000
+from .constants import LuckValueBounds
 
 # 配置文件路径
 plugin_config_dir = get_plugin_config_dir()
@@ -51,7 +48,7 @@ def _calculate_min_max_from_ranges(ranges_config: list) -> Tuple[int, int]:
         Tuple[int, int]: (实际最小值, 实际最大值)
     """
     if not ranges_config or not isinstance(ranges_config, list):
-        return MIN_SAFE_VALUE, MAX_SAFE_VALUE
+        return LuckValueBounds.MIN_SAFE, LuckValueBounds.MAX_SAFE
     
     # 收集所有范围的最小和最大值
     mins = []
@@ -63,7 +60,7 @@ def _calculate_min_max_from_ranges(ranges_config: list) -> Tuple[int, int]:
             maxs.append(range_info['max'])
     
     if not mins or not maxs:
-        return MIN_SAFE_VALUE, MAX_SAFE_VALUE
+        return LuckValueBounds.MIN_SAFE, LuckValueBounds.MAX_SAFE
     
     # 返回最小的最小值和最大的最大值
     return min(mins), max(maxs)
@@ -79,12 +76,11 @@ def _apply_bounds_control(config_data: Dict[str, Any]) -> Dict[str, Any]:
         Dict[str, Any]: 经过边界控制后的配置数据
     """
     # 确保min_value在安全范围内
-    min_value = config_data.get("min_value", MIN_SAFE_VALUE)
-    config_data["min_value"] = max(MIN_SAFE_VALUE, min_value)
+    min_value = config_data.get("min_value", LuckValueBounds.MIN_SAFE)
+    config_data["min_value"] = max(LuckValueBounds.MIN_SAFE, min_value)
     
-    # 确保max_value在安全范围内且大于min_value
-    max_value = config_data.get("max_value", MAX_SAFE_VALUE)
-    config_data["max_value"] = min(MAX_SAFE_VALUE, max_value)
+    max_value = config_data.get("max_value", LuckValueBounds.MAX_SAFE)
+    config_data["max_value"] = min(LuckValueBounds.MAX_SAFE, max_value)
     
     # 确保max_value大于min_value
     if config_data["max_value"] <= config_data["min_value"]:
@@ -110,8 +106,8 @@ def _validate_and_fix_ranges(config_data):
     
     ranges = config_data["ranges"]
     valid_ranges = []
-    min_value = config_data.get("min_value", MIN_SAFE_VALUE)
-    max_value = config_data.get("max_value", MAX_SAFE_VALUE)
+    min_value = config_data.get("min_value", LuckValueBounds.MIN_SAFE)
+    max_value = config_data.get("max_value", LuckValueBounds.MAX_SAFE)
     
     # 验证每个范围配置
     for range_info in ranges:
@@ -247,6 +243,3 @@ def get_config():
 # 打印配置文件路径用于调试
 logger.debug(f"配置文件路径(YAML): {config_file_path}")
 logger.debug(f"配置文件路径(JSON): {json_config_file_path}")
-
-# 全局配置变量
-config = {}

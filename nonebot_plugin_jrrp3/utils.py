@@ -1,9 +1,7 @@
 import random
+from typing import Callable
 from nonebot.log import logger
-
-# 安全边界定义
-MIN_SAFE_VALUE = -999999999
-MAX_SAFE_VALUE = 999999999
+from .constants import LuckValueBounds
 
 def calculate_luck_level(num: int, ranges: list) -> tuple:
     """根据人品数值计算运势级别和描述
@@ -15,14 +13,12 @@ def calculate_luck_level(num: int, ranges: list) -> tuple:
     Returns:
         tuple: (运势级别, 运势描述)
     """
-    # 检查范围值（使用与randint一致的左闭右闭规则：[min, max]）
     for range_config in ranges:
         min_val = range_config["min"]
         max_val = range_config["max"]
         if min_val <= num <= max_val:
             return range_config["level"], range_config["description"]
     
-    # 如果没有匹配到，返回默认值
     return "未知", "你进入了虚空之地"
 
 def generate_luck_value(min_luck: int, max_luck: int, seed: int) -> int:
@@ -36,21 +32,18 @@ def generate_luck_value(min_luck: int, max_luck: int, seed: int) -> int:
     Returns:
         int: 生成的人品数值
     """
-    # 额外保险：再次确保在安全范围内
-    min_luck = max(MIN_SAFE_VALUE, min(int(min_luck), MAX_SAFE_VALUE))
-    max_luck = max(MIN_SAFE_VALUE, min(int(max_luck), MAX_SAFE_VALUE))
+    min_luck = max(LuckValueBounds.MIN_SAFE, min(int(min_luck), LuckValueBounds.MAX_SAFE))
+    max_luck = max(LuckValueBounds.MIN_SAFE, min(int(max_luck), LuckValueBounds.MAX_SAFE))
     
-    # 安全生成随机数，避免极端值问题
     try:
         rnd = random.Random()
         rnd.seed(seed)
-        lucknum = rnd.randint(min_luck, max_luck)
-        return lucknum
+        return rnd.randint(min_luck, max_luck)
     except ValueError as e:
         logger.error(f"生成随机数时出错: {e}，使用默认范围")
         rnd = random.Random()
         rnd.seed(seed)
-        return rnd.randint(1, 100)
+        return rnd.randint(LuckValueBounds.RANDINT_FALLBACK_MIN, LuckValueBounds.RANDINT_FALLBACK_MAX)
 
 def calculate_average_luck(data: list) -> tuple:
     """计算平均人品值
@@ -70,26 +63,14 @@ def calculate_average_luck(data: list) -> tuple:
     
     return times, avg_luck
 
-def filter_week_data(data: list, date_func) -> list:
-    """筛选本周的人品数据
+def filter_data_by_date(data: list, date_func: Callable[[str], bool]) -> list:
+    """根据日期函数筛选数据
     
     Args:
-        data: 全部人品记录
-        date_func: 日期过滤函数，判断是否为本周
+        data: 全部人品记录列表，每个元素为(QQID, Value, Date)格式的元组
+        date_func: 日期过滤函数，判断日期是否符合条件
         
     Returns:
-        list: 本周的人品记录
-    """
-    return [item for item in data if date_func(item[2])]
-
-def filter_month_data(data: list, date_func) -> list:
-    """筛选本月的人品数据
-    
-    Args:
-        data: 全部人品记录
-        date_func: 日期过滤函数，判断是否为本月
-        
-    Returns:
-        list: 本月的人品记录
+        符合条件的数据列表
     """
     return [item for item in data if date_func(item[2])]
