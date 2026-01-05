@@ -113,8 +113,6 @@ class ConfigManager:
 
     def _load_config(self) -> None:
         config_dir = get_plugin_config_dir()
-        config_file_path = config_dir / "jrrp_config.yaml"
-        json_config_file_path = config_dir / "jrrp_config.json"
         
         config_dir.mkdir(parents=True, exist_ok=True)
         

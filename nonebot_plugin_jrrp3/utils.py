@@ -3,7 +3,7 @@ from typing import Callable
 from nonebot.log import logger
 from .constants import LuckValueBounds
 
-def calculate_luck_level(num: int, ranges: list) -> tuple:
+def calculate_luck_level(num: int, ranges: list) -> tuple[str, str]:
     """根据人品数值计算运势级别和描述
     
     Args:
@@ -45,7 +45,7 @@ def generate_luck_value(min_luck: int, max_luck: int, seed: int) -> int:
         rnd.seed(seed)
         return rnd.randint(LuckValueBounds.RANDINT_FALLBACK_MIN, LuckValueBounds.RANDINT_FALLBACK_MAX)
 
-def calculate_average_luck(data: list) -> tuple:
+def calculate_average_luck(data: list) -> tuple[int, float]:
     """计算平均人品值
     
     Args:
