@@ -89,24 +89,38 @@ def weekjrrp_handle_func(event: Event) -> str:
     
     return f' 您本周共使用了 {times} 天 jrrp，平均的幸运指数是 {avg_luck}'
 
+def jrrphelp_handle_func(event: Event) -> str:
+    return '''人品插件使用说明（记得加前缀）：
+
+支持的命令：
+- jrrp / 今日人品 / 今日运势：查询今日人品指数
+- weekjrrp / 本周人品 / 本周运势 / 周运势：查询本周平均人品
+- monthjrrp / 本月人品 / 本月运势 / 月运势：查询本月平均人品
+- alljrrp / 总人品 / 平均人品 / 平均运势：查询历史平均人品
+
+插件源代码：https://github.com/GT-610/nonebot-plugin-jrrp3'''
+
 jrrp_cmd = Alconna("jrrp")
 alljrrp_cmd = Alconna("alljrrp")
 monthjrrp_cmd = Alconna("monthjrrp")
 weekjrrp_cmd = Alconna("weekjrrp")
+jrrphelp_cmd = Alconna("jrrphelp")
 
 commands = [
     Command(("jrrp", "今日人品", "今日运势"), func=jrrp_handle_func),
     Command(("alljrrp", "总人品", "平均人品", "平均运势"), func=alljrrp_handle_func),
     Command(("monthjrrp", "本月人品", "本月运势", "月运势"), func=monthjrrp_handle_func),
     Command(("weekjrrp", "本周人品", "本周运势", "周运势"), func=weekjrrp_handle_func),
+    Command(("jrrphelp", "jrrp帮助", "人品帮助", "运势帮助"), func=jrrphelp_handle_func),
 ]
 
-async def register_commands(plugin_cfg=None):
+async def register_commands():
     handlers = [
         ("jrrp", jrrp_cmd, {"今日人品", "今日运势"}, jrrp_handle_func),
         ("alljrrp", alljrrp_cmd, {"总人品", "平均人品", "平均运势"}, alljrrp_handle_func),
         ("monthjrrp", monthjrrp_cmd, {"本月人品", "本月运势", "月运势"}, monthjrrp_handle_func),
         ("weekjrrp", weekjrrp_cmd, {"本周人品", "本周运势", "周运势"}, weekjrrp_handle_func),
+        ("jrrphelp", jrrphelp_cmd, {"jrrp帮助", "人品帮助", "运势帮助"}, jrrphelp_handle_func),
     ]
     
     for name, cmd, aliases, func in handlers:
