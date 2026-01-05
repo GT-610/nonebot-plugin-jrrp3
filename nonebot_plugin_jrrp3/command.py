@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Callable, Optional, Dict, Any
+from typing import Callable, Optional
 from datetime import date
 
 from nonebot.log import logger
@@ -10,6 +10,7 @@ from nonebot.exception import FinishedException
 
 from .database import insert_tb, select_tb_all, select_tb_today, same_week, same_month
 from .utils import calculate_luck_level, generate_luck_value, calculate_average_luck, filter_data_by_date
+from .config import get_config
 
 @dataclass
 class Command:
@@ -17,22 +18,7 @@ class Command:
     args: Optional[Args] = None
     func: Optional[Callable] = None
 
-plugin_config: Dict[str, Any] = None
-
-def set_plugin_config(config: Dict[str, Any]):
-    global plugin_config
-    plugin_config = config
-
 def create_command_handler(command_name: str, handler_func: Callable[[Event], str]):
-    """创建命令处理器的工厂函数
-    
-    Args:
-        command_name: 命令名称（用于日志）
-        handler_func: 处理函数
-        
-    Returns:
-        异步处理函数
-    """
     async def handle(event: Event) -> str:
         try:
             return handler_func(event)
@@ -42,12 +28,6 @@ def create_command_handler(command_name: str, handler_func: Callable[[Event], st
     return handle
 
 async def send_result(result: str, at_sender: bool = True) -> None:
-    """发送结果消息的辅助函数
-    
-    Args:
-        result: 结果文本
-        at_sender: 是否 @ 发送者
-    """
     await UniMessage.text(result).send(at_sender=at_sender)
 
 def jrrp_handle_func(event: Event) -> str:
@@ -56,15 +36,16 @@ def jrrp_handle_func(event: Event) -> str:
     
     seed = int(today_date) + int(user_id)
     
-    min_luck = plugin_config.get("min_luck", 0)
-    max_luck = plugin_config.get("max_luck", 100)
+    config = get_config()
+    min_luck = config.get("min_luck", 0)
+    max_luck = config.get("max_luck", 100)
     
     lucknum = generate_luck_value(min_luck, max_luck, seed)
     
     if not select_tb_today(user_id, today_date):
         insert_tb(user_id, lucknum, today_date)
     
-    luck_level, luck_desc = calculate_luck_level(lucknum, plugin_config.get("ranges", []))
+    luck_level, luck_desc = calculate_luck_level(lucknum, config.get("ranges", []))
     
     return f' 您今日的幸运指数是 {lucknum}，为"{luck_level}"，{luck_desc}'
 
@@ -120,9 +101,7 @@ commands = [
     Command(("weekjrrp", "本周人品", "本周运势", "周运势"), func=weekjrrp_handle_func),
 ]
 
-async def register_commands(plugin_cfg):
-    set_plugin_config(plugin_cfg)
-    
+async def register_commands(plugin_cfg=None):
     handlers = [
         ("jrrp", jrrp_cmd, {"今日人品", "今日运势"}, jrrp_handle_func),
         ("alljrrp", alljrrp_cmd, {"总人品", "平均人品", "平均运势"}, alljrrp_handle_func),
