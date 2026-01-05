@@ -21,7 +21,9 @@ _✨ 更加现代化的 NoneBot2 每日人品插件 ✨_
 <a href="https://v2.nonebot.dev/">
     <img src="https://img.shields.io/badge/NoneBot-v2-green.svg" alt="NoneBot2">
 </a>
-
+  <a href="https://github.com/GT-610/nonebot-plugin-jrrp3/actions/workflows/publish.yml">
+    <img src="https://github.com/GT-610/nonebot-plugin-jrrp3/actions/workflows/publish.yml/badge.svg" alt="Publish to PyPI">
+  </a>
 </div>
 
 ## 📖 介绍
